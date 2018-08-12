@@ -37,3 +37,21 @@ export function drawGrid(canvas, context, minor, major, stroke, fill) {
 
     context.restore();
 }
+
+export function drawPackman(canvas, context, x, y, radius, mouth) {
+    x = x || canvas.width / 2;
+    y = y || canvas.height / 2;
+    radius = radius || 100;
+    mouth = mouth || 0;
+
+    context.save();
+
+    context.beginPath();
+    context.fillStyle = 'yellow';
+    context.arc(x, y, radius, Math.PI * (0 + (mouth / 4)), Math.PI * (2 - (mouth / 4)));
+    context.lineTo(x, y);
+    context.closePath();
+    context.fill();
+
+    context.restore();
+}
