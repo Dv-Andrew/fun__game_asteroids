@@ -1,4 +1,4 @@
-export function drawGrid(cvs, ctx, minor, major, stroke, fill) {
+export function drawGrid(ctx, minor, major, stroke, fill) {
     minor = minor || 10;
     major = major || minor * 5;
     stroke = stroke || '#00ff00';
@@ -9,8 +9,8 @@ export function drawGrid(cvs, ctx, minor, major, stroke, fill) {
     ctx.strokeStyle = stroke;
     ctx.fillStyle = fill;
 
-    let width = cvs.width;
-    let height = cvs.height;
+    let width = ctx.canvas.width;
+    let height = ctx.canvas.height;
 
     for(var x = 0; x < width; x+=minor) {
         ctx.beginPath();
@@ -38,9 +38,9 @@ export function drawGrid(cvs, ctx, minor, major, stroke, fill) {
     ctx.restore();
 }
 
-export function drawPackman(cvs, ctx, x, y, radius, mouth) {
-    x = x || cvs.width / 2;
-    y = y || cvs.height / 2;
+export function drawPackman(ctx, x, y, radius, mouth) {
+    x = x || ctx.canvas.width / 2;
+    y = y || ctx.canvas.height / 2;
     radius = radius || 100;
     mouth = mouth || 0;
 
@@ -56,7 +56,7 @@ export function drawPackman(cvs, ctx, x, y, radius, mouth) {
     ctx.restore();
 }
 
-export function drawShip(cvs, ctx, x, y, radius, options) {
+export function drawShip(ctx, radius, options) {
     options = options || {};
 
     ctx.save();
@@ -67,28 +67,75 @@ export function drawShip(cvs, ctx, x, y, radius, options) {
 
     let angle = (options.angle || Math.PI * 0.5) / 2;
 
+    let curve1 = options.curve1 || 0.25;
+    let curve2 = options.curve2 || 0.75;
+
     ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(
-        x + Math.cos(Math.PI - angle) * radius,
-        y + Math.sin(Math.PI - angle) * radius
+    ctx.moveTo(radius, 0);
+
+    ctx.quadraticCurveTo(
+        Math.cos(angle) * radius * curve2,
+        Math.sin(angle) * radius * curve2,
+        Math.cos(Math.PI - angle) * radius,
+        Math.sin(Math.PI - angle) * radius
     );
-    ctx.lineTo(
-        x + Math.cos(Math.PI + angle) * radius,
-        y + Math.sin(Math.PI + angle) * radius
+    ctx.quadraticCurveTo( -radius * curve1 - radius, 0,
+        Math.cos(Math.PI + angle) * radius,
+        Math.sin(Math.PI + angle) * radius
+    );
+    ctx.quadraticCurveTo(
+        Math.cos(-angle) * radius * curve2,
+        Math.sin(-angle) * radius * curve2,
+        radius, 0
     );
 
-    ctx.closePath();
+    // ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     if(options.guide) {
+        //circle around ship
         ctx.strokeStyle = 'red';
         ctx.fillStyle = 'rgba(255, 150, 0, 0.15)';
         ctx.lineWidth = 0.5;
         ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.fill();
+
+        //guide curves
+        ctx.strokeStyle = 'white';
+        ctx.fillStyle = 'white';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(
+            Math.cos(-angle) * radius,
+            Math.sin(-angle) * radius
+        );
+        ctx.lineTo(0, 0);
+        ctx.lineTo(
+            Math.cos(angle) * radius,
+            Math.sin(angle) * radius
+        );
+        ctx.moveTo(-radius, 0);
+        ctx.lineTo(0, 0);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(
+            Math.cos(angle) * radius * curve2,
+            Math.sin(angle) * radius * curve2,
+            radius/40, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(
+            Math.cos(-angle) * radius * curve2,
+            Math.sin(-angle) * radius * curve2,
+            radius/40, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(radius * curve1 - radius, 0, radius/50, 0, Math.PI * 2);
         ctx.fill();
     }
 
