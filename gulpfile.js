@@ -236,8 +236,8 @@ gulp.task('dev',
     gulp.series(
         'build',
         gulp.parallel(
-            'watch'//,
-            // 'server'
+            'watch',
+            'server'
         )
     )
 );

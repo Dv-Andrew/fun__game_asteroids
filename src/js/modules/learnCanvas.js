@@ -65,7 +65,7 @@ export function drawShip(ctx, radius, options) {
     ctx.strokeStyle = options.strokeStyle || 'white';
     ctx.fillStyle = options.fillStyle || 'black';
 
-    let angle = (options.angle || Math.PI * 0.5) / 2;
+    let angle = (options.angle || Math.PI * 0.5) / 2; // угол между направляющими (не путать с углом поворота)
 
     let curve1 = options.curve1 || 0.25;
     let curve2 = options.curve2 || 0.75;
@@ -136,6 +136,43 @@ export function drawShip(ctx, radius, options) {
         ctx.fill();
         ctx.beginPath();
         ctx.arc(radius * curve1 - radius, 0, radius/50, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+export function drawAsteroid(ctx, radius, shape, options) {
+    options = options || {};
+
+    ctx.save();
+
+    const noise = options.noise || 0.3;
+
+    ctx.lineWidth = options.lineWidth || 1;
+    ctx.strokeStyle = options.strokeStyle || 'white';
+    ctx.fillStyle = options.fillStyle || 'black';
+
+    ctx.beginPath();
+
+    for (let i = 0; i < shape.length; i++) {
+        ctx.rotate((Math.PI * 2) / shape.length );
+        // ctx.lineTo(radius + radius * noise * (Math.random() - 0.8), 0);
+        ctx.lineTo(radius + radius * noise * shape[i], 0);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    if(options.guide) {
+        //circle around asteroid
+        ctx.strokeStyle = 'red';
+        ctx.fillStyle = 'rgba(255, 150, 0, 0.15)';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.fill();
     }
 
