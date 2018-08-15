@@ -1,5 +1,5 @@
 import { drawGrid } from './modules/learnCanvas.min.js';
-import { drawPackman } from './modules/learnCanvas.min.js';
+import { drawPacman } from './modules/learnCanvas.min.js';
 import { drawShip, drawAsteroid } from './modules/learnCanvas.min.js';
 
 var canvas = document.querySelector('.game__asteroids');
@@ -7,44 +7,62 @@ var context = canvas.getContext('2d');
 
 drawGrid(context);
 
-// drawShip(context, 150, {guide: true});
+context.strokeStyle = "white";
+context.lineWidth = 1.5;
 
-let w = context.canvas.width,
-    h = context.canvas.height;
+let radius = 40
+let x = 0 + radius, y = 0 + radius;
+let xspeed = 50.5, yspeed = 50, gravity = 0.1;
+let mouth = 0;
 
-let x = w / 2,
-    y = h / 2,
-    angle = 0;
-
-// context.save();
-//     context.translate(100, 100);
-//     context.rotate((Math.PI * angle) / 180);
-
-//     drawShip(context, 50, {
-//         curve1: Math.random(),
-//         curve2: Math.random(),
-//         guide: true
-//     });
-// context.restore();
-
-var segments = 15,
-    noise = 0;
-var shape = [];
-
-for (var i = 0; i < segments; i++) {
-    shape.push(2 * (Math.random() - 0.5));
+function frame() {
+    context.clearRect(0, 0, context.canvas.width, context.
+    canvas.height);
+    draw(context);
+    update();
 }
-for (let y = 0.1; y < 1; y += 0.2) {
-    for (let x = 0.1; x < 1; x += 0.2) {
-        context.save();
-            context.translate(canvas.width * x, canvas.height * y);
-            context.rotate((Math.PI * angle) / 180);
-        
-            drawAsteroid(context, canvas.width / 16, shape, {
-                noise: noise,
-                guide: true
-            });
-        context.restore();
-        noise += 0.025;
+
+function update() {
+    x += xspeed;
+    y += yspeed;
+
+    yspeed += gravity;
+
+    if (y >= context.canvas.height - radius) {
+
+        y = context.canvas.height - radius;
+        // add an extra radius
+        yspeed *= -0.9;
+        // reverse and slow down
+        xspeed *= 0.95;
+        // just slow down a bit
     }
+    if (y <= 0) {
+        y = 0 + radius;
+        yspeed *= -0.9;
+    }
+
+    if (x <= 0 || x >= context.canvas.width) {
+        // x = (x + context.canvas.width) % context.canvas.width;
+        xspeed *= -0.95;
+
+        if (x <= 0) {
+            x = 0 + radius - (radius / 2);
+        }
+        if (x >= context.canvas.width) {
+            x = context.canvas.width - radius + (radius / 2);
+        }
+    }
+
+    mouth = Math.abs(Math.sin(6 * Math.PI * x / (context.canvas.width)));
 }
+
+function draw(ctx) {
+    drawGrid(context);
+    ctx.save();
+    ctx.translate(x, y);
+    drawPacman(context, radius, mouth);
+    ctx.restore();
+}
+
+setInterval(frame, 1000.0/60.0); // 60 fps

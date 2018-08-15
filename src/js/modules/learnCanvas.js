@@ -38,9 +38,9 @@ export function drawGrid(ctx, minor, major, stroke, fill) {
     ctx.restore();
 }
 
-export function drawPackman(ctx, x, y, radius, mouth) {
-    x = x || ctx.canvas.width / 2;
-    y = y || ctx.canvas.height / 2;
+export function drawPacman(ctx, radius, mouth) {
+    var x = x || 0;
+    var y = y || 0;
     radius = radius || 100;
     mouth = mouth || 0;
 
