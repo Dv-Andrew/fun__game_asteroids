@@ -1,68 +1,48 @@
 import { drawGrid } from './modules/learnCanvas.min.js';
 import { drawPacman } from './modules/learnCanvas.min.js';
 import { drawShip, drawAsteroid } from './modules/learnCanvas.min.js';
+import { Asteroid } from './modules/gameObjects.min.js';
 
 var canvas = document.querySelector('.game__asteroids');
 var context = canvas.getContext('2d');
 
-drawGrid(context);
+//------------------------------------------------------
+var asteroids = [
+    new Asteroid(context, 24, 50, 0.2),
+    new Asteroid(context, 24, 50, 0.5),
+    new Asteroid(context, 5, 50, 0.2)
+];
 
-context.strokeStyle = "white";
-context.lineWidth = 1.5;
-
-let radius = 40
-let x = 0 + radius, y = 0 + radius;
-let xspeed = 50.5, yspeed = 50, gravity = 0.1;
-let mouth = 0;
-
-function frame() {
-    context.clearRect(0, 0, context.canvas.width, context.
-    canvas.height);
-    draw(context);
-    update();
-}
-
-function update() {
-    x += xspeed;
-    y += yspeed;
-
-    yspeed += gravity;
-
-    if (y >= context.canvas.height - radius) {
-
-        y = context.canvas.height - radius;
-        // add an extra radius
-        yspeed *= -0.9;
-        // reverse and slow down
-        xspeed *= 0.95;
-        // just slow down a bit
-    }
-    if (y <= 0) {
-        y = 0 + radius;
-        yspeed *= -0.9;
+function draw(ctx, guide) {
+    if(guide) {
+        drawGrid(ctx);
     }
 
-    if (x <= 0 || x >= context.canvas.width) {
-        // x = (x + context.canvas.width) % context.canvas.width;
-        xspeed *= -0.95;
+    asteroids.forEach(function(asteroid) {
+        asteroid.draw(ctx, guide);
+    });
+}
 
-        if (x <= 0) {
-            x = 0 + radius - (radius / 2);
-        }
-        if (x >= context.canvas.width) {
-            x = context.canvas.width - radius + (radius / 2);
-        }
+function update(ctx, elapsed) {
+    asteroids.forEach(function(asteroid) {
+        asteroid.update(ctx, elapsed);
+    });
+}
+
+var previous, elapsed;
+
+function frame(timestamp) {
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+    if (!previous) {
+        previous = timestamp;
     }
 
-    mouth = Math.abs(Math.sin(6 * Math.PI * x / (context.canvas.width)));
+    elapsed = timestamp - previous;
+    update(context, elapsed / 1000);
+    draw(context, true);
+    previous = timestamp;
+    window.requestAnimationFrame(frame);
 }
 
-function draw(ctx) {
-    drawGrid(context);
-    ctx.save();
-    ctx.translate(x, y);
-    drawPacman(context, radius, mouth);
-    ctx.restore();
-}
-
-setInterval(frame, 1000.0/60.0); // 60 fps
+window.requestAnimationFrame(frame);
