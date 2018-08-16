@@ -19,13 +19,13 @@ function draw(ctx, guide) {
     }
 
     asteroids.forEach(function(asteroid) {
-        asteroid.draw(ctx, guide);
+        asteroid.draw(guide);
     });
 }
 
-function update(ctx, elapsed) {
+function update(elapsed) {
     asteroids.forEach(function(asteroid) {
-        asteroid.update(ctx, elapsed);
+        asteroid.update(elapsed);
     });
 }
 
@@ -39,7 +39,7 @@ function frame(timestamp) {
     }
 
     elapsed = timestamp - previous;
-    update(context, elapsed / 1000);
+    update(elapsed / 1000);
     draw(context, true);
     previous = timestamp;
     window.requestAnimationFrame(frame);
