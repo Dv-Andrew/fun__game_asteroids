@@ -10,7 +10,9 @@ var context = canvas.getContext('2d');
 var asteroids = [
     new Asteroid(context, 24, 50, 0.2),
     new Asteroid(context, 24, 50, 0.5),
-    new Asteroid(context, 5, 50, 0.2)
+    new Asteroid(context, 5, 50, 0.2),
+    new Asteroid(context, 24, 50, 0.2),
+    new Asteroid(context, 24, 50, 0.5)
 ];
 
 function draw(ctx, guide) {
@@ -19,7 +21,7 @@ function draw(ctx, guide) {
     }
 
     asteroids.forEach(function(asteroid) {
-        asteroid.draw(guide);
+        asteroid.draw();
     });
 }
 

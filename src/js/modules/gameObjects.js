@@ -1,4 +1,4 @@
-import {drawShip, drawAsteroid } from './learnCanvas.min.js';
+// import {drawShip, drawAsteroid } from './learnCanvas.min.js';
 
 export class Asteroid {
     constructor (context, segments, radius, noise) {
@@ -42,15 +42,43 @@ export class Asteroid {
         this.angle = (this.angle + this.rotation_speed * elapsed) % (2 * Math.PI);
     }
 
-    draw(guide) {
+    draw() {
+        let guide = true; // отрисовывать ли рамку
+
         this.ctx.save();
             this.ctx.translate(this.x, this.y);
             this.ctx.rotate(this.angle);
     
-            drawAsteroid(this.ctx, this.radius, this.shape, {
-                guide: guide,
-                noise: this.noise
-            });
-            this.ctx.restore();
+            // drawAsteroid(this.ctx, this.radius, this.shape, {
+            //     guide: guide,
+            //     noise: this.noise
+            // });
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeStyle = 'white';
+            this.ctx.fillStyle = 'black';
+
+            this.ctx.beginPath();
+    
+            for (let i = 0; i < this.shape.length; i++) {
+                this.ctx.rotate((Math.PI * 2) / this.shape.length );
+                this.ctx.lineTo(this.radius + this.radius * this.noise * this.shape[i], 0);
+            }
+        
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.stroke();
+
+            if(guide) {
+                //circle around asteroid
+                this.ctx.strokeStyle = 'red';
+                this.ctx.fillStyle = 'rgba(255, 150, 0, 0.15)';
+                this.ctx.lineWidth = 0.5;
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+                this.ctx.fill();
+            }
+
+        this.ctx.restore();
     }
 }
