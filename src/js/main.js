@@ -1,7 +1,7 @@
 "use strict";
 
 import { drawGrid } from './modules/learnCanvas.min.js';
-import { Mass, Asteroid } from './modules/gameObjects.min.js';
+import { Asteroid } from './modules/gameObjects.min.js';
 
 var canvas = document.querySelector('.game__asteroids');
 var context = canvas.getContext('2d');
@@ -11,9 +11,6 @@ var asteroids = [];
 for(let i = 0; i < 5; i++) {
     asteroids[i] = new Asteroid(context, Math.random() * canvas.width, Math.random() * canvas.height, 10000);
 }
-
-// var asteroid = new Asteroid(context, Math.random() * canvas.width, Math.random() * canvas.height, 10000);
-// window.asteroid = asteroid; // доступ к переменной из консоли
 
 function draw(ctx, guide) {
     if(guide) {
