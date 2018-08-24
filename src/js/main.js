@@ -1,25 +1,24 @@
+"use strict";
+
 import { drawGrid } from './modules/learnCanvas.min.js';
-import { drawPacman } from './modules/learnCanvas.min.js';
-import { drawShip, drawAsteroid } from './modules/learnCanvas.min.js';
-import { Asteroid } from './modules/gameObjects.min.js';
+import { Mass, Asteroid } from './modules/gameObjects.min.js';
 
 var canvas = document.querySelector('.game__asteroids');
 var context = canvas.getContext('2d');
 
 //------------------------------------------------------
-var asteroids = [
-    new Asteroid(context, 24, 50, 0.2),
-    new Asteroid(context, 24, 50, 0.5),
-    new Asteroid(context, 5, 50, 0.2),
-    new Asteroid(context, 24, 50, 0.2),
-    new Asteroid(context, 24, 50, 0.5)
-];
+var asteroids = [];
+for(let i = 0; i < 5; i++) {
+    asteroids[i] = new Asteroid(context, Math.random() * canvas.width, Math.random() * canvas.height, 10000);
+}
+
+// var asteroid = new Asteroid(context, Math.random() * canvas.width, Math.random() * canvas.height, 10000);
+// window.asteroid = asteroid; // доступ к переменной из консоли
 
 function draw(ctx, guide) {
     if(guide) {
         drawGrid(ctx);
     }
-
     asteroids.forEach(function(asteroid) {
         asteroid.draw();
     });
@@ -31,19 +30,18 @@ function update(elapsed) {
     });
 }
 
-var previous, elapsed;
-
+var previousTime;
 function frame(timestamp) {
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-
-    if (!previous) {
-        previous = timestamp;
+    if (!previousTime) {
+        previousTime = timestamp;
     }
+    let elapsedTime = timestamp - previousTime;
+    previousTime = timestamp;
 
-    elapsed = timestamp - previous;
-    update(elapsed / 1000);
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    update(elapsedTime / 1000);
     draw(context, true);
-    previous = timestamp;
+    
     window.requestAnimationFrame(frame);
 }
 
