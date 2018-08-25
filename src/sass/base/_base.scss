@@ -5,4 +5,10 @@
 
 .game__asteroids {
     background-color: $color_black;
+    border: 2px solid red;
+    border-radius: 5px;
+}
+
+.game__asteroids:focus {
+    border: 2px solid darkgrey;
 }
