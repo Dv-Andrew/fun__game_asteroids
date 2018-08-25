@@ -1,6 +1,4 @@
-// import {drawShip, drawAsteroid } from './learnCanvas.min.js';
-
-export class Mass {
+export class SpaceObject {
     constructor(context, x, y, mass, radius, angle, x_speed, y_speed, rotation_speed) {
         this.ctx = context;
         this.x = x;
@@ -62,14 +60,12 @@ export class Mass {
     }
 }
 
-export class Asteroid extends Mass {
+export class Asteroid extends SpaceObject {
     constructor(context, x, y, mass, x_speed, y_speed, rotation_speed) {
         var density = 1; // kg per square pixel
         var radius = Math.sqrt((mass / density) / Math.PI);
 
         super(context, x, y, mass, radius, 0, x_speed, y_speed, rotation_speed);
-
-        this.ctx = context;
 
         this.circumference = 2 * Math.PI * this.radius; // длина окружности
         this.segments = Math.ceil(this.circumference / 15);
@@ -84,8 +80,6 @@ export class Asteroid extends Mass {
     }
 
     draw() {
-        let guide = true; // отрисовывать ли рамку
-
         this.ctx.save();
         this.ctx.translate(this.x, this.y);
         this.ctx.rotate(this.angle);
@@ -105,6 +99,7 @@ export class Asteroid extends Mass {
         this.ctx.fill();
         this.ctx.stroke();
 
+        let guide = true; // отрисовывать ли рамку
         if (guide) {
             //circle around asteroid
             this.ctx.strokeStyle = 'red';
@@ -113,6 +108,108 @@ export class Asteroid extends Mass {
             this.ctx.beginPath();
             this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
             this.ctx.stroke();
+            this.ctx.fill();
+        }
+
+        this.ctx.restore();
+    }
+}
+
+export class Ship extends SpaceObject {
+    constructor(context, x, y) {
+        super(context, x, y, 10, 20, Math.PI * 1.5);
+    }
+
+    draw(options) {
+        this.options = options || {};
+
+        this.ctx.save();
+        this.ctx.translate(this.x, this.y);
+        this.ctx.rotate(this.angle);
+
+        this.ctx.lineWidth = this.options.lineWidth || 2;
+        this.ctx.strokeStyle = this.options.strokeStyle || 'white';
+        this.ctx.fillStyle = this.options.fillStyle || 'black';
+
+        let angle = (this.options.angle || Math.PI * 0.5) / 2; // угол между направляющими (не путать с углом поворота)
+
+        let curve1 = this.options.curve1 || 0.25; // курвы отвечают за вид корабля (регулировка изгиба)
+        let curve2 = this.options.curve2 || 0.75;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.radius, 0);
+
+        this.ctx.quadraticCurveTo(
+            Math.cos(angle) * this.radius * curve2,
+            Math.sin(angle) * this.radius * curve2,
+            Math.cos(Math.PI - angle) * this.radius,
+            Math.sin(Math.PI - angle) * this.radius
+        );
+        this.ctx.quadraticCurveTo(
+            -this.radius * curve1 - this.radius,
+            0,
+            Math.cos(Math.PI + angle) * this.radius,
+            Math.sin(Math.PI + angle) * this.radius
+        );
+        this.ctx.quadraticCurveTo(
+            Math.cos(-angle) * this.radius * curve2,
+            Math.sin(-angle) * this.radius * curve2,
+            this.radius,
+            0
+        );
+
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        let guide = true; // отрисовывать ли рамку
+        if (guide) {
+            //circle around ship
+            this.ctx.strokeStyle = 'red';
+            this.ctx.fillStyle = 'rgba(255, 150, 0, 0.15)';
+            this.ctx.lineWidth = 0.5;
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            this.ctx.stroke();
+            this.ctx.fill();
+
+            //guide curves
+            this.ctx.strokeStyle = 'white';
+            this.ctx.fillStyle = 'white';
+            this.ctx.lineWidth = 0.5;
+            this.ctx.beginPath();
+            this.ctx.moveTo(
+                Math.cos(-angle) * this.radius,
+                Math.sin(-angle) * this.radius
+            );
+            this.ctx.lineTo(0, 0);
+            this.ctx.lineTo(
+                Math.cos(angle) * this.radius,
+                Math.sin(angle) * this.radius
+            );
+            this.ctx.moveTo(-this.radius, 0);
+            this.ctx.lineTo(0, 0);
+            this.ctx.stroke();
+            this.ctx.beginPath();
+            this.ctx.arc(
+                Math.cos(angle) * this.radius * curve2,
+                Math.sin(angle) * this.radius * curve2,
+                this.radius / 40,
+                0,
+                Math.PI * 2
+            );
+            this.ctx.fill();
+            this.ctx.beginPath();
+            this.ctx.arc(
+                Math.cos(-angle) * this.radius * curve2,
+                Math.sin(-angle) * this.radius * curve2,
+                this.radius / 40,
+                0,
+                Math.PI * 2
+            );
+            this.ctx.fill();
+            this.ctx.beginPath();
+            this.ctx.arc(this.radius * curve1 - this.radius, 0, this.radius / 50, 0, Math.PI * 2);
             this.ctx.fill();
         }
 
