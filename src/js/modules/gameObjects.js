@@ -116,8 +116,14 @@ export class Asteroid extends SpaceObject {
 }
 
 export class Ship extends SpaceObject {
-    constructor(context, x, y) {
-        super(context, x, y, 10, 20, Math.PI * 1.5);
+    constructor(context, x, y, power) {
+        super(context, x, y, 100, 20, Math.PI * 1.5);
+        this.thrusterPower = (power * 10) || 0;
+        this.isThrusterOn = false;
+
+        this.steeringPower = (power / 2) || 0;
+        this.leftThruster = false;
+        this.rightThruster = false;
     }
 
     draw(options) {
@@ -136,6 +142,28 @@ export class Ship extends SpaceObject {
         let curve1 = this.options.curve1 || 0.25; // курвы отвечают за вид корабля (регулировка изгиба)
         let curve2 = this.options.curve2 || 0.75;
 
+
+        if (this.isThrusterOn) {
+            this.ctx.save();
+            this.ctx.strokeStyle = "yellow";
+            this.ctx.fillStyle = "red";
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.moveTo(
+                Math.cos(Math.PI + angle * 0.8) * this.radius / 2,
+                Math.sin(Math.PI + angle * 0.8) * this.radius / 2
+            )
+            this.ctx.quadraticCurveTo(-this.radius * 2,
+                0,
+                Math.cos(Math.PI - angle * 0.8) * this.radius / 2,
+                Math.sin(Math.PI - angle * 0.8) * this.radius / 2
+            );
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.stroke();
+            this.ctx.restore();
+        }
+
         this.ctx.beginPath();
         this.ctx.moveTo(this.radius, 0);
 
@@ -145,8 +173,7 @@ export class Ship extends SpaceObject {
             Math.cos(Math.PI - angle) * this.radius,
             Math.sin(Math.PI - angle) * this.radius
         );
-        this.ctx.quadraticCurveTo(
-            -this.radius * curve1 - this.radius,
+        this.ctx.quadraticCurveTo(-this.radius * curve1,
             0,
             Math.cos(Math.PI + angle) * this.radius,
             Math.sin(Math.PI + angle) * this.radius
@@ -214,5 +241,11 @@ export class Ship extends SpaceObject {
         }
 
         this.ctx.restore();
+    }
+
+    update(elapsed) {
+        this.push(this.angle, this.isThrusterOn * this.thrusterPower, elapsed);
+        this.twist((this.rightThruster - this.leftThruster) * this.steeringPower, elapsed);
+        SpaceObject.prototype.update.apply(this, arguments); // прикольная фишка, надо обязательно запомнить!
     }
 }
