@@ -116,7 +116,7 @@ export class Asteroid extends SpaceObject {
 }
 
 export class Ship extends SpaceObject {
-    constructor(context, x, y, power) {
+    constructor(context, x, y, power, weaponPower, weaponReloadTime) {
         super(context, x, y, 100, 20, Math.PI * 1.5);
         this.thrusterPower = (power * 10) || 0;
         this.isThrusterOn = false;
@@ -124,6 +124,11 @@ export class Ship extends SpaceObject {
         this.steeringPower = (power / 2) || 0;
         this.leftThruster = false;
         this.rightThruster = false;
+
+        this.weaponPower = weaponPower || 200;
+        this.weaponReloadTime = weaponReloadTime || 0.25; //seconds
+        this.timeUntilReloaded = this.weaponReloadTime;
+        this.isLoaded = false;
     }
 
     draw(options) {
@@ -247,5 +252,67 @@ export class Ship extends SpaceObject {
         this.push(this.angle, this.isThrusterOn * this.thrusterPower, elapsed);
         this.twist((this.rightThruster - this.leftThruster) * this.steeringPower, elapsed);
         SpaceObject.prototype.update.apply(this, arguments); // прикольная фишка, надо обязательно запомнить!
+
+        //перезарядка:
+        this.isLoaded = this.timeUntilReloaded === 0; //true if timeUntilReloaded === 0;
+        if (!this.isLoaded) {
+            this.timeUntilReloaded -= Math.min(elapsed, this.timeUntilReloaded);
+        }
+    }
+
+
+    shoot(elapsed) {
+        var p = new Projectile(
+            this.ctx,
+            this.x + Math.cos(this.angle) * this.radius,
+            this.y + Math.sin(this.angle) * this.radius,
+            0.025, //mass
+            2, //lifeTime
+            this.x_speed,
+            this.y_speed,
+            this.rotation_speed);
+        
+        p.push(this.angle, this.weaponPower, elapsed);
+        this.push(this.angle + Math.PI, this.weaponPower, elapsed);
+
+        this.timeUntilReloaded = this.weaponReloadTime;
+
+        return p;
+    }
+}
+
+
+export class Projectile extends SpaceObject {
+    constructor(context, x, y, mass, lifeTime, x_speed, y_speed, rotation_speed) {
+        var density = 0.001; // kg per square pixel
+        var radius = Math.sqrt((mass / density) / Math.PI);
+
+        super(context, x, y, mass, radius, 0, x_speed, y_speed, rotation_speed);
+
+        this.lifeTime = lifeTime;
+        this.life = 1.0;
+    }
+
+    draw() {
+        this.ctx.save();
+        this.ctx.translate(this.x, this.y);
+        this.ctx.rotate(this.angle);
+
+        this.ctx.lineWidth = 0.5;
+        this.ctx.strokeStyle = 'rgba(255, 255, 0,' + this.life +')';
+        this.ctx.fillStyle = 'rgba(255, 100, 0,' + this.life +')';
+
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2); // пока просто кружок
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        this.ctx.restore();
+    }
+
+    update(elapsed) {
+        this.life -= (elapsed / this.lifeTime);
+        SpaceObject.prototype.update.apply(this, arguments);
     }
 }

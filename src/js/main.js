@@ -17,6 +17,8 @@ for (let i = 0; i < 10; i++) {
 var ship = new Ship(context, canvas.width / 2, canvas.height / 2, 1000);
 window.ship = ship;
 
+var projectiles = [];
+
 //------------------------------
 // ОТРИСОВКА И ОБНОВЛЕНИЕ:
 function draw(ctx, guide) {
@@ -26,7 +28,12 @@ function draw(ctx, guide) {
     asteroids.forEach(function(asteroid) {
         asteroid.draw();
     });
+
     ship.draw();
+
+    projectiles.forEach(function(projectile) {
+        projectile.draw();
+    });
 }
 
 function update(elapsed) {
@@ -35,10 +42,19 @@ function update(elapsed) {
     });
 
     ship.update(elapsed);
+
+    projectiles.forEach(function(projectile, i, projectiles) {
+        projectile.update(elapsed);
+        if (projectile.life <= 0) {
+            projectiles.splice(i, 1);
+        }
+    });
+    if (ship.trigger && ship.isLoaded) {
+        projectiles.push(ship.shoot(elapsed));
+    }
 }
 
 var previousTime;
-
 function frame(timestamp) {
     if (!previousTime) {
         previousTime = timestamp;
@@ -78,6 +94,11 @@ canvas.addEventListener("keydown", function(event) {
         case 40: // down arrow keyCode
             break;
 
+        case " ":
+        case 32: // space keyCode
+            ship.trigger = true;
+            break;
+
         default:
             nothingHandled = true;
     }
@@ -104,6 +125,11 @@ canvas.addEventListener("keyup", function(event) {
             break;
         case "ArrowDown":
         case 40: // down arrow keyCode
+            break;
+
+        case " ":
+        case 32: // space keyCode
+            ship.trigger = false;
             break;
 
         default:
