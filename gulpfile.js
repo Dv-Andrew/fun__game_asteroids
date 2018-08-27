@@ -108,9 +108,6 @@ gulp.task('generateCSS', function() {
     })]))
     .pipe(gulp.dest('src/css'))
     .pipe(gulpIf(!isDevelopment, cleanCss()))
-    .pipe(rename({ //надо доработать эту глупость, но пока "и таак сойдёт"
-        suffix: ".min"
-    }))
     .pipe(gulpIf(isDevelopment, sourcemaps.write()))
     .pipe(gulp.dest('build/css'));
 });
@@ -128,9 +125,6 @@ gulp.task('generateJS', function() {
     }))
     .pipe(newer('build/js'))
     .pipe(gulpIf(!isDevelopment, uglify()))
-    .pipe(rename({ //надо доработать эту глупость, но пока "и таак сойдёт"
-        suffix: ".min"
-    }))
     .pipe(gulp.dest('build/js'));
 });
 

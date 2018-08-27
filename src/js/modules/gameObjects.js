@@ -79,7 +79,9 @@ export class Asteroid extends SpaceObject {
         }
     }
 
-    draw() {
+    draw(options) {
+        this.options = options || {};
+
         this.ctx.save();
         this.ctx.translate(this.x, this.y);
         this.ctx.rotate(this.angle);
@@ -99,8 +101,7 @@ export class Asteroid extends SpaceObject {
         this.ctx.fill();
         this.ctx.stroke();
 
-        let guide = true; // отрисовывать ли рамку
-        if (guide) {
+        if (this.options.drawGuides) {
             //circle around asteroid
             this.ctx.strokeStyle = 'red';
             this.ctx.fillStyle = 'rgba(255, 150, 0, 0.15)';
@@ -118,6 +119,11 @@ export class Asteroid extends SpaceObject {
 export class Ship extends SpaceObject {
     constructor(context, x, y, power, weaponPower, weaponReloadTime) {
         super(context, x, y, 100, 20, Math.PI * 1.5);
+
+        this.isCompromised = false;
+        this.maxHealth = 5;
+        this.health = this.maxHealth;
+
         this.thrusterPower = (power * 10) || 0;
         this.isThrusterOn = false;
 
@@ -194,11 +200,15 @@ export class Ship extends SpaceObject {
         this.ctx.fill();
         this.ctx.stroke();
 
-        let guide = true; // отрисовывать ли рамку
-        if (guide) {
+        if (this.options.drawGuides) {
             //circle around ship
-            this.ctx.strokeStyle = 'red';
-            this.ctx.fillStyle = 'rgba(255, 150, 0, 0.15)';
+            if (this.isCompromised) {
+                this.ctx.strokeStyle = 'red';
+                this.ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
+            } else {
+                this.ctx.strokeStyle = 'green';
+                this.ctx.fillStyle = 'rgba(0, 255, 0, 0.15)';
+            }
             this.ctx.lineWidth = 0.5;
             this.ctx.beginPath();
             this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
@@ -257,6 +267,10 @@ export class Ship extends SpaceObject {
         this.isLoaded = this.timeUntilReloaded === 0; //true if timeUntilReloaded === 0;
         if (!this.isLoaded) {
             this.timeUntilReloaded -= Math.min(elapsed, this.timeUntilReloaded);
+        }
+
+        if (this.isCompromised) {
+            this.health -= Math.min(elapsed, this.health);
         }
     }
 
