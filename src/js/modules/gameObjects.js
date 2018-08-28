@@ -114,24 +114,29 @@ export class Asteroid extends SpaceObject {
 
         this.ctx.restore();
     }
+
+    child(mass) {
+        return new Asteroid(this.ctx, this.x, this.y, mass, this.x_speed, this.y_speed, this.rotation_speed);
+    }
 }
 
 export class Ship extends SpaceObject {
-    constructor(context, x, y, power, weaponPower, weaponReloadTime) {
+    constructor(context, x, y, thrusterPower, weaponPower, weaponReloadTime, bulletSpeed) {
         super(context, x, y, 100, 20, Math.PI * 1.5);
 
         this.isCompromised = false;
         this.maxHealth = 5;
         this.health = this.maxHealth;
 
-        this.thrusterPower = (power * 10) || 0;
+        this.thrusterPower = (thrusterPower * 10) || 0;
         this.isThrusterOn = false;
 
-        this.steeringPower = (power / 2) || 0;
+        this.steeringPower = (thrusterPower / 2) || 0;
         this.leftThruster = false;
         this.rightThruster = false;
 
-        this.weaponPower = weaponPower || 200;
+        this.weaponPower = weaponPower || 500; // снимает 500 единиц массы астероида за каждое попадание
+        this.bulletSpeed = bulletSpeed || 200; // скорость полёта снаряда
         this.weaponReloadTime = weaponReloadTime || 0.25; //seconds
         this.timeUntilReloaded = this.weaponReloadTime;
         this.isLoaded = false;
@@ -285,9 +290,9 @@ export class Ship extends SpaceObject {
             this.x_speed,
             this.y_speed,
             this.rotation_speed);
-        
-        p.push(this.angle, this.weaponPower, elapsed);
-        this.push(this.angle + Math.PI, this.weaponPower, elapsed);
+
+        p.push(this.angle, this.bulletSpeed, elapsed);
+        this.push(this.angle + Math.PI, this.bulletSpeed, elapsed);
 
         this.timeUntilReloaded = this.weaponReloadTime;
 
@@ -313,8 +318,8 @@ export class Projectile extends SpaceObject {
         this.ctx.rotate(this.angle);
 
         this.ctx.lineWidth = 0.5;
-        this.ctx.strokeStyle = 'rgba(255, 255, 0,' + this.life +')';
-        this.ctx.fillStyle = 'rgba(255, 100, 0,' + this.life +')';
+        this.ctx.strokeStyle = 'rgba(255, 255, 0,' + this.life + ')';
+        this.ctx.fillStyle = 'rgba(255, 100, 0,' + this.life + ')';
 
         this.ctx.beginPath();
         this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2); // пока просто кружок
@@ -328,5 +333,39 @@ export class Projectile extends SpaceObject {
     update(elapsed) {
         this.life -= (elapsed / this.lifeTime);
         SpaceObject.prototype.update.apply(this, arguments);
+    }
+}
+
+export class Indicator {
+    constructor(context, x, y, width, height, label) {
+        this.ctx = context;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+
+        this.label = label + ': ';
+    }
+
+    draw(maxValue, currentValue) {
+        this.ctx.save();
+
+        this.ctx.strokeStyle = 'white';
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = this.height + 'px Arial';
+
+        var offset = this.ctx.measureText(this.label).width;
+
+        this.ctx.fillText(this.label, this.x, this.y + this.height - 1);
+
+        this.ctx.beginPath();
+        this.ctx.rect(this.x + offset, this.y, this.width, this.height);
+        this.ctx.stroke();
+
+        this.ctx.beginPath();
+        this.ctx.rect(this.x + offset, this.y, this.width * (currentValue / maxValue), this.height);
+        this.ctx.fill();
+
+        this.ctx.restore();
     }
 }
