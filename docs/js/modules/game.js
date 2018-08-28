@@ -1,4 +1,4 @@
-import { Ship, Asteroid } from './gameObjects.js';
+import { Ship, Asteroid, Indicator } from './gameObjects.js';
 
 export default class GameAsteroids {
     constructor(canvasClass) {
@@ -19,12 +19,19 @@ export default class GameAsteroids {
             this.canvas.width / 2,
             this.canvas.height / 2,
             1000,
-            200,
-            0.25
+            100,
+            0.25,
+            200
         );
         this.projectiles = [];
         this.asteroids = [];
         this.asteroids.push(this.addAsteroid());
+
+        this.healthIndicator = new Indicator(this.context, 5, 5, 150, 15, "Health");
+
+        this.score = 0;
+        this.scorePoints = 100; // количество очков за попадание
+        this.scoreMultipler = 1;
 
         this.canvas.addEventListener("keydown", this.keyDown.bind(this), true); // bind используется для привязки контекста
         this.canvas.addEventListener("keyup", this.keyUp.bind(this), true);
@@ -32,7 +39,7 @@ export default class GameAsteroids {
         window.requestAnimationFrame(this.frame.bind(this));
     }
 
-    // Drawing methods:
+    // Main methods:
     frame(timestamp) {
         if (!this.previousTime) {
             this.previousTime = timestamp;
@@ -46,20 +53,33 @@ export default class GameAsteroids {
         window.requestAnimationFrame(this.frame.bind(this));
     }
     update(elapsedTime) {
-        this.ship.compromised = false;
-        this.ship.update(elapsedTime);
+        
+        this.ship.isCompromised = false;
 
         this.asteroids.forEach(function(asteroid) {
             asteroid.update(elapsedTime);
+
             if (this.isCollision(asteroid, this.ship)) {
                 this.ship.isCompromised = true;
             }
+
         }, this);
+        
+        this.ship.update(elapsedTime);
 
         this.projectiles.forEach(function(projectile, i, projectiles) {
             projectile.update(elapsedTime);
+            
             if (projectile.life <= 0) {
-                projectiles.splice(i, 1);
+                this.projectiles.splice(i, 1);
+            } else {
+                this.asteroids.forEach(function(asteroid, j) {
+                    if (this.isCollision(asteroid, projectile)) {
+                        this.projectiles.splice(i, 1);
+                        this.asteroids.splice(j, 1);
+                        this.splitAsteroid(asteroid, elapsedTime);
+                    }
+                }, this);
             }
         }, this);
 
@@ -73,6 +93,11 @@ export default class GameAsteroids {
         if (this.drawGuides) {
             this.asteroids.forEach(function(asteroid) {
                 this.drawLine(asteroid, this.ship);
+
+                this.projectiles.forEach(function(projectile) {
+                    this.drawLine(asteroid, projectile);
+                }, this)
+
             }, this);
         }
 
@@ -86,11 +111,7 @@ export default class GameAsteroids {
 
         this.ship.draw({ drawGuides: this.drawGuides });
 
-        this.context.save();
-        this.context.font = "18px Arial";
-        this.context.fillStyle = "white";
-        this.context.fillText("health: " + this.ship.health.toFixed(1), 10, this.canvas.height - 10);
-        this.context.restore();
+        this.healthIndicator.draw(this.ship.maxHealth, this.ship.health);
     }
 
     // Controls:
@@ -161,6 +182,22 @@ export default class GameAsteroids {
     }
     distanceBetween(obj1, obj2) {
         return Math.sqrt(Math.pow(obj1.x - obj2.x, 2) + Math.pow(obj1.y - obj2.y, 2));
+    }
+
+    splitAsteroid(asteroid, elapsedTime) {
+        asteroid.mass -= this.ship.weaponPower;
+        this.score += this.scorePoints * this.scoreMultipler;
+        var split = 0.25 + 0.5 * Math.random(); // split unevenly
+        var ch1 = asteroid.child(asteroid.mass * split);
+        var ch2 = asteroid.child(asteroid.mass * (1 - split));
+        [ch1, ch2].forEach(function(child) {
+            if (child.mass < this.ship.weaponPower) {
+                this.score += child.mass;
+            } else {
+                this.pushAsteroidInRandomDirection(child, elapsedTime);
+                this.asteroids.push(child);
+            }
+        }, this);
     }
 
     // some useful development methods:
