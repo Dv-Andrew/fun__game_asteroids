@@ -149,8 +149,13 @@ export class Ship extends SpaceObject {
         this.ctx.translate(this.x, this.y);
         this.ctx.rotate(this.angle);
 
+        var strokeColor = 'white'
+        if (this.isCompromised) {
+            strokeColor = 'orange'
+        };
+
         this.ctx.lineWidth = this.options.lineWidth || 2;
-        this.ctx.strokeStyle = this.options.strokeStyle || 'white';
+        this.ctx.strokeStyle = this.options.strokeStyle || strokeColor;
         this.ctx.fillStyle = this.options.fillStyle || 'black';
 
         let angle = (this.options.angle || Math.PI * 0.5) / 2; // угол между направляющими (не путать с углом поворота)
@@ -336,7 +341,7 @@ export class Projectile extends SpaceObject {
     }
 }
 
-export class Indicator {
+export class ProgressIndicator {
     constructor(context, x, y, width, height, label) {
         this.ctx = context;
         this.x = x;
@@ -365,6 +370,37 @@ export class Indicator {
         this.ctx.beginPath();
         this.ctx.rect(this.x + offset, this.y, this.width * (currentValue / maxValue), this.height);
         this.ctx.fill();
+
+        this.ctx.restore();
+    }
+}
+
+export class NumbersIndicator {
+    constructor(context, x, y, label, options) {
+        this.ctx = context;
+        this.x = x;
+        this.y = y;
+
+        options = options || {};
+
+        this.label = label + ': ' || 'undefined label';
+        this.digits = options.digits || 2;
+        this.textSize = options.textSize || '20px'
+        this.textAlign = options.textAlign || 'end';
+    }
+
+    draw(value) {
+        this.ctx.save();
+
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = this.textSize + 'px Arial';
+        this.ctx.textAlign = this.textAlign;
+        
+        this.ctx.fillText(
+            this.label + value.toFixed(this.digits),
+            this.x,
+            this.y
+        );
 
         this.ctx.restore();
     }

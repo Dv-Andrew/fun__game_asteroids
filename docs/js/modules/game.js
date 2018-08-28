@@ -1,4 +1,4 @@
-import { Ship, Asteroid, Indicator } from './gameObjects.js';
+import { Ship, Asteroid, ProgressIndicator, NumbersIndicator } from './gameObjects.js';
 
 export default class GameAsteroids {
     constructor(canvasClass) {
@@ -27,7 +27,10 @@ export default class GameAsteroids {
         this.asteroids = [];
         this.asteroids.push(this.addAsteroid());
 
-        this.healthIndicator = new Indicator(this.context, 5, 5, 150, 15, "Health");
+        this.healthIndicator = new ProgressIndicator(this.context, 5, 5, 150, 15, 'Health');
+        this.scoreIndicator = new NumbersIndicator(this.context, this.canvas.width - 10, 15, 'Score');
+        this.scoreMultiplerIndicator = new NumbersIndicator(this.context, this.canvas.width - 100, 15, 'X');
+        this.fpsIndicator = new NumbersIndicator(this.context, this.canvas.width - 10, this.canvas.height - 5, 'fps', {digits: 2});
 
         this.score = 0;
         this.scorePoints = 100; // количество очков за попадание
@@ -46,6 +49,7 @@ export default class GameAsteroids {
         }
         let elapsedTime = timestamp - this.previousTime;
         this.previousTime = timestamp;
+        this.fps = 1000 / elapsedTime;
 
         this.update(elapsedTime / 1000);
         this.draw();
@@ -61,10 +65,11 @@ export default class GameAsteroids {
 
             if (this.isCollision(asteroid, this.ship)) {
                 this.ship.isCompromised = true;
+                this.scoreMultipler = 1;
             }
 
         }, this);
-        
+
         this.ship.update(elapsedTime);
 
         this.projectiles.forEach(function(projectile, i, projectiles) {
@@ -99,6 +104,8 @@ export default class GameAsteroids {
                 }, this)
 
             }, this);
+
+            this.fpsIndicator.draw(this.fps);
         }
 
         this.projectiles.forEach(function(projectile) {
@@ -112,6 +119,8 @@ export default class GameAsteroids {
         this.ship.draw({ drawGuides: this.drawGuides });
 
         this.healthIndicator.draw(this.ship.maxHealth, this.ship.health);
+        this.scoreIndicator.draw(this.score);
+        this.scoreMultiplerIndicator.draw(this.scoreMultipler);
     }
 
     // Controls:
@@ -186,7 +195,10 @@ export default class GameAsteroids {
 
     splitAsteroid(asteroid, elapsedTime) {
         asteroid.mass -= this.ship.weaponPower;
+
         this.score += this.scorePoints * this.scoreMultipler;
+        this.scoreMultipler += 0.1;
+
         var split = 0.25 + 0.5 * Math.random(); // split unevenly
         var ch1 = asteroid.child(asteroid.mass * split);
         var ch2 = asteroid.child(asteroid.mass * (1 - split));
