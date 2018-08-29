@@ -1,4 +1,4 @@
-import { Ship, Asteroid, ProgressIndicator, NumbersIndicator } from './gameObjects.js';
+import { Ship, Asteroid, ProgressIndicator, NumbersIndicator, Message } from './gameObjects.js';
 
 export default class GameAsteroids {
     constructor(canvasClass) {
@@ -12,7 +12,7 @@ export default class GameAsteroids {
         this.shipRadius = 15;
 
         this.asteroidMass = 5000;
-        this.asteroidPushForce = 500000; // max force to apply in one frame
+        this.asteroidPushForce = 700000; // max force to apply in one frame
 
         this.ship = new Ship(
             this.context,
@@ -20,7 +20,7 @@ export default class GameAsteroids {
             this.canvas.height / 2,
             1000,
             100,
-            0.25,
+            0.5,
             200
         );
         this.projectiles = [];
@@ -32,9 +32,14 @@ export default class GameAsteroids {
         this.scoreMultiplerIndicator = new NumbersIndicator(this.context, this.canvas.width - 100, 15, 'X');
         this.fpsIndicator = new NumbersIndicator(this.context, this.canvas.width - 10, this.canvas.height - 5, 'fps', {digits: 2});
 
+        this.message = new Message(this.context, this.canvas.width / 2, this.canvas.height * 0.4);
+
         this.score = 0;
         this.scorePoints = 100; // количество очков за попадание
         this.scoreMultipler = 1;
+
+        this.isLevelComplete = false;
+        this.isGameOver = false;
 
         this.canvas.addEventListener("keydown", this.keyDown.bind(this), true); // bind используется для привязки контекста
         this.canvas.addEventListener("keyup", this.keyUp.bind(this), true);
@@ -69,6 +74,11 @@ export default class GameAsteroids {
             }
 
         }, this);
+
+        if(this.ship.health <= 0) {
+            this.isGameOver = true;
+            return;
+        }
 
         this.ship.update(elapsedTime);
 
@@ -108,13 +118,18 @@ export default class GameAsteroids {
             this.fpsIndicator.draw(this.fps);
         }
 
-        this.projectiles.forEach(function(projectile) {
-            projectile.draw();
-        }, this)
-
         this.asteroids.forEach(function(asteroid) {
             asteroid.draw({ drawGuides: this.drawGuides });
         }, this);
+
+        if(this.isGameOver) {
+            this.message.draw('GAME OVER', 'Press \"Space\" to play again', this.score);
+            return;
+        }
+        
+        this.projectiles.forEach(function(projectile) {
+            projectile.draw();
+        }, this)
 
         this.ship.draw({ drawGuides: this.drawGuides });
 
@@ -149,7 +164,11 @@ export default class GameAsteroids {
 
             case " ":
             case 32: // space keyCode
-                this.ship.isShooting = value;
+                if (this.isGameOver) {
+                    this.restartGame();
+                } else {
+                    this.ship.isShooting = value;
+                }
                 break;
 
             case "g":
@@ -210,6 +229,25 @@ export default class GameAsteroids {
                 this.asteroids.push(child);
             }
         }, this);
+    }
+    
+    // game methods:
+    restartGame() {
+        this.isGameOver = false;
+        this.score = 0;
+
+        this.ship = new Ship(
+            this.context,
+            this.canvas.width / 2,
+            this.canvas.height / 2,
+            1000,
+            100,
+            0.5,
+            200
+        );
+        this.projectiles = [];
+        this.asteroids = [];
+        this.asteroids.push(this.addAsteroid());
     }
 
     // some useful development methods:
