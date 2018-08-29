@@ -7,6 +7,11 @@ export default class GameAsteroids {
         this.canvas.focus();
 
         this.drawGuides = false;
+        
+        this.isGameOver = false;
+        this.isNewGame = true;
+        this.isLevelComplete = false;
+        this.level = 1;
 
         this.shipMass = 100;
         this.shipRadius = 15;
@@ -14,22 +19,10 @@ export default class GameAsteroids {
         this.asteroidMass = 5000;
         this.asteroidPushForce = 700000; // max force to apply in one frame
 
-        this.ship = new Ship(
-            this.context,
-            this.canvas.width / 2,
-            this.canvas.height / 2,
-            1000,
-            100,
-            0.5,
-            200
-        );
-        this.projectiles = [];
-        this.asteroids = [];
-        this.asteroids.push(this.addAsteroid());
-
         this.healthIndicator = new ProgressIndicator(this.context, 5, 5, 150, 15, 'Health');
-        this.scoreIndicator = new NumbersIndicator(this.context, this.canvas.width - 10, 15, 'Score');
-        this.scoreMultiplerIndicator = new NumbersIndicator(this.context, this.canvas.width - 100, 15, 'X');
+        this.levelIndicator = new NumbersIndicator(this.context, this.canvas.width / 2, 20, 'Level', {textSize: 15, textAlign: 'center'});
+        this.scoreMultiplerIndicator = new NumbersIndicator(this.context, this.canvas.width - 150, 20, 'X', {digits: 1, textSize: 15, textAlign: 'center'});
+        this.scoreIndicator = new NumbersIndicator(this.context, this.canvas.width - 10, 20, 'Score', {textSize: 15, textAlign: 'end'});
         this.fpsIndicator = new NumbersIndicator(this.context, this.canvas.width - 10, this.canvas.height - 5, 'fps', {digits: 2});
 
         this.message = new Message(this.context, this.canvas.width / 2, this.canvas.height * 0.4);
@@ -37,9 +30,6 @@ export default class GameAsteroids {
         this.score = 0;
         this.scorePoints = 100; // количество очков за попадание
         this.scoreMultipler = 1;
-
-        this.isLevelComplete = false;
-        this.isGameOver = false;
 
         this.canvas.addEventListener("keydown", this.keyDown.bind(this), true); // bind используется для привязки контекста
         this.canvas.addEventListener("keyup", this.keyUp.bind(this), true);
@@ -62,6 +52,9 @@ export default class GameAsteroids {
         window.requestAnimationFrame(this.frame.bind(this));
     }
     update(elapsedTime) {
+        if (this.isNewGame) {
+            return;
+        }
         
         this.ship.isCompromised = false;
 
@@ -104,6 +97,11 @@ export default class GameAsteroids {
     }
     draw() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        if (this.isNewGame) {
+            this.message.draw('ASTEROIDS', 'Press \"Space\" to start playing');
+            return;
+        }
 
         if (this.drawGuides) {
             this.asteroids.forEach(function(asteroid) {
@@ -134,6 +132,7 @@ export default class GameAsteroids {
         this.ship.draw({ drawGuides: this.drawGuides });
 
         this.healthIndicator.draw(this.ship.maxHealth, this.ship.health);
+        this.levelIndicator.draw(this.level);
         this.scoreIndicator.draw(this.score);
         this.scoreMultiplerIndicator.draw(this.scoreMultipler);
     }
@@ -164,7 +163,7 @@ export default class GameAsteroids {
 
             case " ":
             case 32: // space keyCode
-                if (this.isGameOver) {
+                if (this.isGameOver || this.isNewGame) {
                     this.restartGame();
                 } else {
                     this.ship.isShooting = value;
@@ -233,6 +232,9 @@ export default class GameAsteroids {
     
     // game methods:
     restartGame() {
+        if (this.isNewGame) {
+            this.isNewGame = false;
+        }
         this.isGameOver = false;
         this.score = 0;
 

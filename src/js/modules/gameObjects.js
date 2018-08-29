@@ -384,8 +384,8 @@ export class NumbersIndicator {
         options = options || {};
 
         this.label = label + ': ' || 'undefined label';
-        this.digits = options.digits || 2;
-        this.textSize = options.textSize || '20px'
+        this.digits = options.digits || 0;
+        this.textSize = options.textSize || '10'
         this.textAlign = options.textAlign || 'end';
     }
 
