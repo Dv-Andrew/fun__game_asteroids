@@ -290,7 +290,7 @@ export class Ship extends SpaceObject {
             this.ctx,
             this.x + Math.cos(this.angle) * this.radius,
             this.y + Math.sin(this.angle) * this.radius,
-            0.025, //mass
+            0.015, //mass
             2, //lifeTime
             this.x_speed,
             this.y_speed,
@@ -323,8 +323,8 @@ export class Projectile extends SpaceObject {
         this.ctx.rotate(this.angle);
 
         this.ctx.lineWidth = 0.5;
-        this.ctx.strokeStyle = 'rgba(255, 255, 0,' + this.life + ')';
-        this.ctx.fillStyle = 'rgba(255, 100, 0,' + this.life + ')';
+        this.ctx.strokeStyle = 'rgba(255, 255, 0,' + Math.max(this.life, 0.7) + ')';
+        this.ctx.fillStyle = 'rgba(255, 100, 0,' + Math.max(this.life, 0.7) + ')';
 
         this.ctx.beginPath();
         this.ctx.arc(0, 0, this.radius, 0, Math.PI * 2); // пока просто кружок
@@ -384,8 +384,8 @@ export class NumbersIndicator {
         options = options || {};
 
         this.label = label + ': ' || 'undefined label';
-        this.digits = options.digits || 2;
-        this.textSize = options.textSize || '20px'
+        this.digits = options.digits || 0;
+        this.textSize = options.textSize || '10'
         this.textAlign = options.textAlign || 'end';
     }
 
@@ -401,6 +401,40 @@ export class NumbersIndicator {
             this.x,
             this.y
         );
+
+        this.ctx.restore();
+    }
+}
+
+export class Message {
+    constructor(context, x, y, options) {
+        this.ctx = context;
+        this.x = x || this.ctx.canvas.width / 2;
+        this.y = y || this.ctx.canvas.height / 2;
+
+        options = options || {};
+
+        this.mainTextSize = options.mainTextSize || 32;
+        this.subTextSize = options.subTextSize || 24;
+        this.textAlign = options.textAlign || 'center';
+        this.fill = options.fill || 'white';
+    }
+
+    draw(mainText, subText, score) {
+        this.ctx.save();
+
+        this.ctx.fillStyle = this.fill;
+        this.ctx.textAlign = this.textAlign;
+        this.ctx.font = this.mainTextSize + 'px Arial';
+        this.ctx.fillText(mainText, this.x, this.y);
+        this.ctx.font = this.subTextSize + 'px Arial';
+        if(score != undefined) {
+            let text = 'Your score: ' + score.toFixed(0);
+            this.ctx.fillText(text, this.x, this.y + this.mainTextSize);
+            this.ctx.fillText(subText, this.x, this.y + this.mainTextSize + this.subTextSize * 1.2);
+        } else {
+            this.ctx.fillText(subText, this.x, this.y + this.mainTextSize);
+        }
 
         this.ctx.restore();
     }
