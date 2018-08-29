@@ -17,7 +17,7 @@ export default class GameAsteroids {
         this.shipRadius = 15;
 
         this.asteroidMass = 5000;
-        this.asteroidPushForce = 700000; // max force to apply in one frame
+        this.asteroidPushForce = 70000; // max force to apply in one frame
 
         this.healthIndicator = new ProgressIndicator(this.context, 5, 5, 150, 15, 'Health');
         this.levelIndicator = new NumbersIndicator(this.context, this.canvas.width / 2, 20, 'Level', {textSize: 15, textAlign: 'center'});
@@ -90,6 +90,11 @@ export default class GameAsteroids {
                 }, this);
             }
         }, this);
+        
+        if(this.asteroids.length == 0) {
+            this.isLevelComplete = true;
+            return;
+        }
 
         if (this.ship.isLoaded && this.ship.isShooting) {
             this.projectiles.push(this.ship.shoot(elapsedTime));
@@ -131,6 +136,12 @@ export default class GameAsteroids {
 
         this.ship.draw({ drawGuides: this.drawGuides });
 
+        this.levelIndicator.draw(this.level);
+        if(this.isLevelComplete) {
+            this.message.draw('LEVEL COMPLETED', 'Press \"Space\" to start the next level', this.score);
+            return;
+        }
+
         this.healthIndicator.draw(this.ship.maxHealth, this.ship.health);
         this.levelIndicator.draw(this.level);
         this.scoreIndicator.draw(this.score);
@@ -165,6 +176,8 @@ export default class GameAsteroids {
             case 32: // space keyCode
                 if (this.isGameOver || this.isNewGame) {
                     this.restartGame();
+                } else if (this.isLevelComplete) {
+                    this.levelUp();
                 } else {
                     this.ship.isShooting = value;
                 }
@@ -199,8 +212,8 @@ export default class GameAsteroids {
     }
     pushAsteroidInRandomDirection(asteroid, elapsedTime) {
         elapsedTime = elapsedTime || 0.015;
-        asteroid.push(2 * Math.PI * Math.random(), this.asteroidPushForce, elapsedTime);
-        asteroid.twist((Math.random() - 0.5) * Math.PI * this.asteroidPushForce * 0.02, elapsedTime);
+        asteroid.push(2 * Math.PI * Math.random(), this.asteroidPushForce * 100, elapsedTime);
+        asteroid.twist((Math.random() - 0.5) * Math.PI * (this.asteroidPushForce * 100) * 0.02, elapsedTime);
     }
 
     // game mechanic methods:
@@ -237,19 +250,27 @@ export default class GameAsteroids {
         }
         this.isGameOver = false;
         this.score = 0;
+        this.level = 0;
 
         this.ship = new Ship(
             this.context,
             this.canvas.width / 2,
             this.canvas.height / 2,
             1000,
-            100,
+            500,
             0.5,
             200
         );
         this.projectiles = [];
         this.asteroids = [];
-        this.asteroids.push(this.addAsteroid());
+        this.levelUp();
+    }
+    levelUp() {
+        this.isLevelComplete = false;
+        this.level++;
+        for (let i = 0; i < this.level; i++) {
+            this.asteroids.push(this.addAsteroid());
+        }
     }
 
     // some useful development methods:
