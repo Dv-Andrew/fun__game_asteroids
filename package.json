@@ -35,7 +35,7 @@
         "path": "^0.12.7",
         "posthtml-include": "^1.2.0",
         "vinyl-named": "^1.1.0",
-        "webpack-stream": "^5.1.1"
+        "webpack-stream": "^7.0.0"
     },
     "browserslist": [
         "last 2 versions",
